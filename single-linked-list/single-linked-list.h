@@ -3,6 +3,7 @@
 #include <string>
 #include <utility>
 #include <algorithm>
+#include <cassert>
 
 template <typename Type>
 class SingleLinkedList {
@@ -66,10 +67,12 @@ class SingleLinkedList {
         }
         
         [[nodiscard]] reference operator*() const noexcept {
+            assert(node_ != nullptr);
             return node_->value;
         }
         
         [[nodiscard]] pointer operator->() const noexcept {
+            assert(node_ != nullptr);
             return &(node_->value);
         }
         
@@ -165,13 +168,8 @@ public:
     }
     
     void swap(SingleLinkedList& other) noexcept {
-        Node * ptr = head_.next_node;
-        head_.next_node = other.head_.next_node;
-        other.head_.next_node = ptr;
-        
-        size_t size = this->size_;
-        this->size_ = other.size_;
-        other.size_ = size;
+        std::swap(head_.next_node, other.head_.next_node);
+        std::swap(size_, other.size_);;
     }
     
     void PushFront(const Type& value) {
@@ -180,23 +178,29 @@ public:
     }
     
     void PopFront() noexcept {
-        Node * removed = head_.next_node;
-        head_.next_node = removed->next_node;
-        delete removed;
-        --size_;
+        if (size_ > 0) {
+            Node * removed = head_.next_node;
+            head_.next_node = removed->next_node;
+            delete removed;
+            --size_;
+        }
     }
     
     Iterator InsertAfter(ConstIterator pos, const Type& value) {
+        assert(pos.node_ != nullptr);
         pos.node_->next_node = new Node(value, pos.node_->next_node);
         ++size_;
         return Iterator(pos.node_->next_node);
     }
 
     Iterator EraseAfter(ConstIterator pos) noexcept {
-        Node * removed = pos.node_->next_node;
-        pos.node_->next_node = removed->next_node;
-        delete removed;
-        --size_;
+        assert(pos.node_ != nullptr);
+        if (size_ > 0) {
+            Node * removed = pos.node_->next_node;
+            pos.node_->next_node = removed->next_node;
+            delete removed;
+            --size_;
+        }
         return Iterator(pos.node_->next_node);
     }
     
